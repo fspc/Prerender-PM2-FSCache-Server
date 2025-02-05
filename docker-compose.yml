@@ -1,0 +1,39 @@
+# prerender server
+
+services:
+  prerender:
+    build: .
+    image: ${IMAGE:-bikeshopi/prerender}
+    container_name: ${CONTAINER_NAME:-bikeshopi-prerender} 
+    user: node
+    restart: unless-stopped
+    init: true  # makes all the difference, no more timeout / restarts without chrome alive
+    expose:
+      - "3000"
+      - "9222"   
+    environment:
+      # - PROXY_READ_TIMEOUT=60s
+      # - PROXY_SET_HEADER_X_REAL_IP=$$remote_addr
+      # - PROXY_SET_HEADER_X_FORWARDED_FOR=$$proxy_add_x_forwarded_for
+      # - PROXY_SET_HEADER_HOST=$$http_host
+      # - PROXY_SET_HEADER_USER_AGENT=$$http_user_agent
+      - VIRTUAL_PORT=3000
+      - VIRTUAL_HOST=${VIRTUAL_HOST:-prerender.bikeshopi.org}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-prerender.bikeshopi.org}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-jr@bikeshopi.org}
+      - LETSENCRYPT_TEST=${LETSENCRYPT_TEST:-false}
+      - CHROME_LOCATION=/usr/bin/chromium
+      - PAGE_LOAD_TIMEOUT=3000  # default 20000 (20 seconds)
+      # - CHROME_FLAGS=--headless --disable-gpu --no-sandbox --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222     
+    networks:
+      letsencrypt:
+      default:
+    logging:
+      driver: "json-file"  
+      options:
+        max-size: "10m"
+        max-file: "3"      
+
+networks:
+  letsencrypt:
+    external: true
