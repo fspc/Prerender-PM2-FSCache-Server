@@ -3,8 +3,8 @@
 services:
   prerender:
     build: .
-    image: ${IMAGE:-bikeshopi/prerender}
-    container_name: ${CONTAINER_NAME:-bikeshopi-prerender} 
+    image: ${IMAGE:-bikeshopi/prerender-staging}
+    container_name: ${CONTAINER_NAME:-bikeshopi-prerender-staging} 
     user: node
     restart: unless-stopped
     init: true  # makes all the difference, no more timeout / restarts without chrome alive
@@ -18,13 +18,14 @@ services:
       # - PROXY_SET_HEADER_HOST=$$http_host
       # - PROXY_SET_HEADER_USER_AGENT=$$http_user_agent
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=${VIRTUAL_HOST:-prerender.bikeshopi.org}
-      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-prerender.bikeshopi.org}
+      - VIRTUAL_HOST=${VIRTUAL_HOST:-prerender-staging.bikeshopi.org}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-prerender-staging.bikeshopi.org}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-jr@bikeshopi.org}
       - LETSENCRYPT_TEST=${LETSENCRYPT_TEST:-false}
       - CHROME_LOCATION=/usr/bin/chromium
       - PAGE_LOAD_TIMEOUT=3000  # default 20000 (20 seconds)
-      # - CHROME_FLAGS=--headless --disable-gpu --no-sandbox --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222     
+      # - CHROME_FLAGS=--headless --disable-gpu --no-sandbox --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222
+      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-staging}     
     networks:
       letsencrypt:
       default:
