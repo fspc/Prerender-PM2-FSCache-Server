@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y \
 
 # Already has git
 # RUN apt-get update -y
-RUN yarn add prerender prerender-memory-cache
+RUN yarn add prerender prerender-memory-cache pm2 winston nodemailer
 
 USER node:node
 
