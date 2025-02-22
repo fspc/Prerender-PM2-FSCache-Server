@@ -8,7 +8,7 @@ bikeshopi-prerender-staging  | 2025-02-21T23:20:11.550Z [fscache] Caching https:
 8f528902984ae23071866
 bikeshopi-prerender-staging  | 2025-02-21T23:20:19.850Z [fscache] Serving https://b.org/b/x9StaGQ3 from /tmp/prerender-cache/c3/c367c69bb9b5b77b4718f528902984ae23071866
 ```
-`ecosystem.config.js` and `server.js` are both are mounted from your local filesystem so you can adjust as required     and restart using Docker Compose.
+[ecosystem.config.js](ecosystem.config.js) and [server.js](server.js) are both are mounted from your local filesystem so you can adjust as required     and restart using Docker Compose.
 
 ## Environmental Variables for `docker-compose.yml`
 ```
