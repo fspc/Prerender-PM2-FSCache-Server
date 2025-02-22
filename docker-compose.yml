@@ -1,40 +1,54 @@
-# prerender server
+# prerender server with pm2 and prerender-plugin-fscache (file system based so 
+# resolves caching issues with pm2 and prerender-memory-cache)
+#
+# docker compose exec prerender pm2 monit
 
 services:
+
   prerender:
     build: .
-    image: ${IMAGE:-bikeshopi/prerender-staging}
-    container_name: ${CONTAINER_NAME:-bikeshopi-prerender-staging} 
+    image: ${IMAGE:-prerender}
+    container_name: ${CONTAINER_NAME:-prerender} 
     user: node
     restart: unless-stopped
-    init: true  # makes all the difference, no more timeout / restarts without chrome alive
+    init: true  # makes all the difference, no more timeout (not always) / restarts without chrome alive
     expose:
       - "3000"
       - "9222"   
     environment:
-      # - PROXY_READ_TIMEOUT=60s
-      # - PROXY_SET_HEADER_X_REAL_IP=$$remote_addr
-      # - PROXY_SET_HEADER_X_FORWARDED_FOR=$$proxy_add_x_forwarded_for
-      # - PROXY_SET_HEADER_HOST=$$http_host
-      # - PROXY_SET_HEADER_USER_AGENT=$$http_user_agent
+      - PATH=/home/node/node_modules/pm2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=${VIRTUAL_HOST:-prerender-staging.bikeshopi.org}
-      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST:-prerender-staging.bikeshopi.org}
-      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL:-jr@bikeshopi.org}
+      - VIRTUAL_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
       - LETSENCRYPT_TEST=${LETSENCRYPT_TEST:-false}
       - CHROME_LOCATION=/usr/bin/chromium
-      - PAGE_LOAD_TIMEOUT=3000  # default 20000 (20 seconds)
-      # - CHROME_FLAGS=--headless --disable-gpu --no-sandbox --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222
-      - COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME:-staging}     
+      - PAGE_LOAD_TIMEOUT=${PAGE_LOAD_TIMEOUT:-3000}  # default 20000 (20 seconds)
+      - NODE_ENV=production
+      - PHANTOM_WORKERS=${PHANTOM_WORKERS}
+      # prerender-plugin-fscache to the rescue
+      - CACHE_STATUS_CODES=${CACHE_STATUS_CODES:-200,301,302,303,304,307,308,404}
+      - CACHE_TTL=${CACHE_TTL:-86400}
+      - CACHE_PATH=/home/node/prerender-cache
+      - CACHE_VOLUME=${CACHE_VOLUME:-prerender-cache}                          
     networks:
       letsencrypt:
       default:
+    entrypoint: ["pm2-runtime", "start", "ecosystem.config.js"]
     logging:
       driver: "json-file"  
       options:
         max-size: "10m"
-        max-file: "3"      
+        max-file: "3"
+    volumes:
+      - ./ecosystem.config.js:/home/node/ecosystem.config.js
+      - ./server.js:/home/node/server.js
+      - prerender-cache:/home/node/prerender-cache   
 
 networks:
   letsencrypt:
     external: true
+
+volumes:
+  prerender-cache:
+      name: ${CACHE_VOLUME}

@@ -17,15 +17,15 @@ ENV CHROME_FLAGS="--headless --disable-gpu --no-sandbox --disable-dev-shm-usage 
 
 WORKDIR /home/node
 
+USER root
+RUN mkdir -p /home/node/prerender-cache && chown -R node:node /home/node/prerender-cache
 RUN apt-get update && apt-get install -y \
     chromium \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Already has git
-# RUN apt-get update -y
-RUN yarn add prerender prerender-memory-cache pm2 winston nodemailer
-
 USER node:node
+RUN yarn add prerender pm2 prerender-plugin-fscache
 
-ENTRYPOINT ["node", "server.js"]
+
+ENTRYPOINT ["pm2-runtime", "start", "ecosystem.config.js"]

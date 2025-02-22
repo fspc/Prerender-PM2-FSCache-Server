@@ -14,7 +14,8 @@ const server = prerender({
     logRequests: true,
     browserDebuggingPort: 9222,
 });
-server.use(require('prerender-memory-cache'))
+
+server.use(require("prerender-plugin-fscache")); // allows pm2 instances to live happily since written to filesystem
 server.use(prerender.httpHeaders());
 server.use(prerender.removeScriptTags());
 server.use(prerender.sendPrerenderHeader());
