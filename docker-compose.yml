@@ -23,12 +23,17 @@ services:
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
       - LETSENCRYPT_TEST=${LETSENCRYPT_TEST:-false}
       - CHROME_LOCATION=/usr/bin/chromium
-      - PAGE_LOAD_TIMEOUT=${PAGE_LOAD_TIMEOUT:-3000}  # default 20000 (20 seconds)
+      - PAGE_LOAD_TIMEOUT=${PAGE_LOAD_TIMEOUT:-15000}  # was 3000: too tight for a cold SPA, prerender gave up with splash/empty DOM and (with TIMEOUT_STATUS_CODE unset) cached those partial renders as 200 for 24h
+      # a timed-out render must NOT look like a success: 504 is not in CACHE_STATUS_CODES,
+      # so partial snapshots are never written to the cache
+      - TIMEOUT_STATUS_CODE=${TIMEOUT_STATUS_CODE:-504}
       - NODE_ENV=production
-      - PHANTOM_WORKERS=${PHANTOM_WORKERS}
+      - PHANTOM_WORKERS=${PHANTOM_WORKERS}  # legacy, ignored: instances is fixed to 1 (see ecosystem.config.js)
       # prerender-plugin-fscache to the rescue
-      - CACHE_STATUS_CODES=${CACHE_STATUS_CODES:-200,301,302,303,304,307,308,404}
-      - CACHE_TTL=${CACHE_TTL:-86400}
+      # only cache clean results, and only for 1h so any bad entry self-heals quickly
+      # (404 was removed: a transient 404 used to be frozen for a full day)
+      - CACHE_STATUS_CODES=${CACHE_STATUS_CODES:-200,301,302}
+      - CACHE_TTL=${CACHE_TTL:-3600}
       - CACHE_PATH=/home/node/prerender-cache
       - CACHE_VOLUME=${CACHE_VOLUME:-prerender-cache}                          
     networks:
